@@ -1,4 +1,4 @@
 include ':app'
 rootProject.name='Map Painting Editor'
 include ':android-leveldb-master'
-project(':android-leveldb-master').projectDir = new File(rootProject.projectDir, '../android-leveldb-master/library')
+project(':android-leveldb-master').projectDir = new File(rootProject.projectDir, 'android-leveldb-master/library')
