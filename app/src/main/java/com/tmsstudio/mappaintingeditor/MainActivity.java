@@ -281,6 +281,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void refreshList(MenuItem item) {
         checkPermission();
+        Toast.makeText(this, "刷新完成", Toast.LENGTH_SHORT).show();
     }
 
     public void deleteMap(MenuItem item) {
