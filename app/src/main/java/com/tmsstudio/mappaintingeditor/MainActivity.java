@@ -305,4 +305,9 @@ public class MainActivity extends AppCompatActivity {
                 .create();
         dialog.show();
     }
+
+    public void getHelp(MenuItem item) {
+        Intent intent = new Intent(MainActivity.this, Help.class);
+        startActivity(intent);
+    }
 }

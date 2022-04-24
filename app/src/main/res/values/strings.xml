@@ -5,13 +5,14 @@
     <string name="proportional_complete">完整切割</string>
     <string name="introduce">使用方法：\n\n1.点击“+”图标选择图片，图片大小会自动调整。\n\n2.点击按钮生成地图画，默认会在玩家背包的第一个格子生成一个地图物品，如果此格子中有物品，则会覆盖掉此物品，还请注意。\n\n3.软件内显示的缩略图并不代表实际地图画效果。实际效果还请打开游戏查看。\n\n4.生成地图过程中请勿终止软件运行！！！这非常重要！！！意外的终止可能会导致世界损坏！！！\n\n</string>
     <string name="menu_about">关于</string>
+    <string name="help">帮助</string>
     <string name="empower">导入游戏内地图</string>
     <string name="delete_map">删除应用内地图</string>
     <string name="refresh">刷新地图列表</string>
     <string name="select">选择你想使用的生成方式</string>
     <string name="button_normal">普通模式（生成单张地图）</string>
     <string name="button_grid">网格切分模式（图片切分为多张地图）</string>
-    <string name="menu_about_message">作者：创造者MC\n应用图标设计：柠檬龙\n工作室：我的世界魔灵工作室\n支持版本：国际版、网易我的世界、网易我的世界测试版\n\n软件下载：\n<a href="https://creatormc.lanzoul.com/b01vahqub"><font fgcolor="#ff0000ff">https://creatormc.lanzoul.com/b01vahqub</font></a>\n密码：tms\n\n联系作者：\n<a href="https://space.bilibili.com/152404569"><font fgcolor="#ff0000ff">Bilibili</font></a>\n\n免责声明：\n因用户使用不当所造成的任何后果与本软件开发者及其所属工作室无关。应由用户自行承担相关责任。（温馨提示：禁止利用本软件传播违法违规内容！）\n此应用程序与Minecraft、Mojang AB或Microsoft无关，也与我的世界、网易无关。此应用不是一个官方应用，只是一个由玩家制作的APP。\n【这不是一个官方的Minecraft（我的世界）产品】\n【该APP“按原样”提供，不提供任何形式的保证。】\n\n本软件github仓库：\n<a href="https://github.com/CreatorMC/MapPaintingEditor"><font fgcolor="#ff0000ff">MapPaintingEditor</font></a>\n\n使用的库：\n<a href="https://github.com/mithrilmania/android-leveldb"><font fgcolor="#ff0000ff">android-leveldb</font></a>\n<a href="https://github.com/Mojang/leveldb-mcpe"><font fgcolor="#ff0000ff">leveldb-mcpe</font></a>\n<a href="https://github.com/oO0oO0oO0o0o00/blocktopograph"><font fgcolor="#ff0000ff">blocktopograph</font></a>
+    <string name="menu_about_message">作者：创造者MC\n应用图标设计：柠檬龙\n工作室：我的世界魔灵工作室\n软件版本：1.1.0\n支持版本：基岩版\n\n软件下载：\n<a href="https://creatormc.lanzoul.com/b01vahqub"><font fgcolor="#ff0000ff">https://creatormc.lanzoul.com/b01vahqub</font></a>\n密码：tms\n\n联系作者：\n<a href="https://space.bilibili.com/152404569"><font fgcolor="#ff0000ff">Bilibili</font></a>\n\n免责声明：\n因用户使用不当所造成的任何后果与本软件开发者及其所属工作室无关。应由用户自行承担相关责任。（温馨提示：禁止利用本软件传播违法违规内容！）\n此应用程序与Minecraft、Mojang AB或Microsoft无关，也与我的世界、网易无关。此应用不是一个官方应用，只是一个由玩家制作的APP。\n【这不是一个官方的Minecraft（我的世界）产品】\n【该APP“按原样”提供，不提供任何形式的保证。】\n\n本软件github仓库：\n<a href="https://github.com/CreatorMC/MapPaintingEditor"><font fgcolor="#ff0000ff">MapPaintingEditor</font></a>\n\n使用的库：\n<a href="https://github.com/mithrilmania/android-leveldb"><font fgcolor="#ff0000ff">android-leveldb</font></a>\n<a href="https://github.com/Mojang/leveldb-mcpe"><font fgcolor="#ff0000ff">leveldb-mcpe</font></a>\n<a href="https://github.com/oO0oO0oO0o0o00/blocktopograph"><font fgcolor="#ff0000ff">blocktopograph</font></a>
     </string>
     <string name="row">行数</string>
     <string name="col">列数</string>
