@@ -9,8 +9,6 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.FrameLayout;
 
-import com.tmsstudio.mappaintingeditor.R;
-
 public class ExpandView extends FrameLayout implements View.OnClickListener {
     private Animation mExpandAnimation;
     private Animation mCollapseAnimation;
@@ -74,6 +72,9 @@ public class ExpandView extends FrameLayout implements View.OnClickListener {
 
     }
 
+    /**
+     * 收缩
+     */
     public void collapse() {
         if (mIsExpand) {
             mIsExpand = false;
@@ -82,6 +83,9 @@ public class ExpandView extends FrameLayout implements View.OnClickListener {
         }
     }
 
+    /**
+     * 展开
+     */
     public void expand() {
         if (!mIsExpand) {
             mIsExpand = true;

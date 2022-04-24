@@ -37,8 +37,20 @@ public class Help extends AppCompatActivity {
         linearLayout.addView(view);
 
         view = (LinearLayout)getLayoutInflater().inflate(R.layout.activity_expand_view, null);
+        createExpand(view, "服务器里能用吗",
+                "1.您必须是服主（或拥有服务器存档的人）\n" +
+                "2.只需将服务器存档放进手机基岩版，即可正常使用软件。生成完毕后放回服务器即可。");
+        linearLayout.addView(view);
+
+        view = (LinearLayout)getLayoutInflater().inflate(R.layout.activity_expand_view, null);
         createExpand(view, "网易版生成闪退",
                 "1.目前最新网易版客户端（客户端版本2.1）对玩家创建的世界也进行了加密，导致软件不能读取存档数据。尚无很好的办法。");
+        linearLayout.addView(view);
+
+        view = (LinearLayout)getLayoutInflater().inflate(R.layout.activity_expand_view, null);
+        createExpand(view, "我还有其他问题",
+                "您可以加入“地图画编辑器反馈群”，反馈您遇到的问题。\n" +
+                "群号：869862626（如果没有问题，请勿打扰）");
         linearLayout.addView(view);
     }
 
