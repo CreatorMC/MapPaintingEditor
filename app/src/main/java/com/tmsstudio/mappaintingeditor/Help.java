@@ -43,6 +43,11 @@ public class Help extends AppCompatActivity {
         linearLayout.addView(view);
 
         view = (LinearLayout)getLayoutInflater().inflate(R.layout.activity_expand_view, null);
+        createExpand(view, "[国际版*]是什么意思",
+                "1.这是指存档迁移前的国际版，正常操作即可");
+        linearLayout.addView(view);
+
+        view = (LinearLayout)getLayoutInflater().inflate(R.layout.activity_expand_view, null);
         createExpand(view, "网易版生成闪退",
                 "1.目前最新网易版客户端（客户端版本2.1）对玩家创建的世界也进行了加密，导致软件不能读取存档数据。尚无很好的办法。");
         linearLayout.addView(view);

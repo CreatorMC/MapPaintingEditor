@@ -36,6 +36,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -50,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
     public static final int INTERNATIONAL = 0;          //国际版
     public static final int NETEASE = 1;                //网易版
     public static final int NETEASETEST = 2;            //网易测试版
+    public static final int OLDINTERNATIONAL = 4;       //存档迁移前的国际版
     public static final int DATAAPP = 3;                //此应用
 
     @Override
@@ -75,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
                     String file_path = "";                                                          //国际基岩版
                     String file_path_netease = "";                                                  //网易基岩版
                     String file_path_netease_test = "";                                             //网易测试基岩版
+                    String file_path_old = storage.getPath() + "/games/com.mojang/minecraftWorlds"; //存档迁移前国际版
                     for(HashMap<String, Object> t: arrayList){
                         if("Minecraft".equals(t.get("appName").toString())){
                             file_path = storage.getPath() + "/Android/data/" + t.get("packageName") + "/files/games/com.mojang/minecraftWorlds";
@@ -90,6 +93,13 @@ public class MainActivity extends AppCompatActivity {
                     if(!file_path.equals("")){
                         addListItem(dir_list, INTERNATIONAL);
                     }
+                    //存档迁移前的国际版
+                    dir = new File(file_path_old);
+                    Log.i("TMS", "init_map_item: " + file_path_old);
+                    dir_list = dir.listFiles();
+                    if(!file_path_old.equals("")){
+                        addListItem(dir_list, OLDINTERNATIONAL);
+                    }
                     //网易版
                     if(!file_path_netease.equals("")){
                         dir = new File(file_path_netease);
@@ -104,8 +114,10 @@ public class MainActivity extends AppCompatActivity {
                     }
                     //软件内部
                     dir = this.getExternalFilesDir("World");
-                    dir_list = dir.listFiles();
-                    addListItem(dir_list, DATAAPP);
+                    if(dir != null){
+                        dir_list = dir.listFiles();
+                        addListItem(dir_list, DATAAPP);
+                    }
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -145,7 +157,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void addListItem(File[] dir_list, int version) throws Exception {
-        if(dir_list != null){
+        if(dir_list != null && dir_list.length >= 1){
             String ver = "";
             if(version == INTERNATIONAL){
                 ver = "[国际版]";
@@ -153,6 +165,8 @@ public class MainActivity extends AppCompatActivity {
                 ver = "[网易版]";
             } else if(version == NETEASETEST){
                 ver = "[网易测试版]";
+            }  else if(version == OLDINTERNATIONAL){
+                ver = "[国际版*]";
             } else if (version == DATAAPP){
                 ver = "[此应用]";
             }
