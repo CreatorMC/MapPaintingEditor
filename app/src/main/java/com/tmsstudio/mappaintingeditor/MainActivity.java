@@ -6,7 +6,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -33,13 +32,14 @@ import com.tmsstudio.mappaintingeditor.Message.Message;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileDescriptor;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -50,9 +50,9 @@ public class MainActivity extends AppCompatActivity {
     protected static final int REQUEST_EXTERNAL_STORAGE = 1;
     protected static final int REQUEST_11_EXTERNAL_STORAGE = 1024;
     protected static String[] PERMISSIONS_STORAGE = {"android.permission.READ_EXTERNAL_STORAGE", "android.permission.WRITE_EXTERNAL_STORAGE"};
-    protected static InputStream inputStream = null;
-    protected static Reader reader = null;
-    protected static BufferedReader bufferedReader = null;
+//    protected static InputStream inputStream = null;
+//    protected static Reader reader = null;
+//    protected static BufferedReader bufferedReader = null;
     public static final int INTERNATIONAL = 0;          //国际版
     public static final int NETEASE = 1;                //网易版
     public static final int NETEASETEST = 2;            //网易测试版
@@ -125,29 +125,6 @@ public class MainActivity extends AppCompatActivity {
 
                 } catch (Exception e) {
                     e.printStackTrace();
-                } finally {
-                    if (reader != null) {
-                        try {
-                            reader.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    if (inputStream != null) {
-                        try {
-                            inputStream.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    if (bufferedReader != null) {
-                        try {
-                            bufferedReader.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-
                 }
             }
         }
@@ -175,11 +152,13 @@ public class MainActivity extends AppCompatActivity {
                 ver = "[此应用]";
             }
             for(File t: dir_list){
+                InputStream inputStream = null;
+                Reader reader = null;
+                BufferedReader bufferedReader = null;
                 try {
                     if(t.exists() && t.isDirectory()){  //文件要存在，并且是个文件夹
-                        File tempfile = new File(t.getPath());
-                        File file=new File(tempfile, "levelname.txt");
-                        File db =new File(tempfile, "db");
+                        File file = new File(t, "levelname.txt");
+                        File db = new File(t, "db");
                         if(!(db.exists() && db.isDirectory() && db.listFiles() != null && Objects.requireNonNull(db.listFiles()).length >= 1)){
                             //世界已损坏
                             continue;
@@ -200,6 +179,16 @@ public class MainActivity extends AppCompatActivity {
                     }
                 } catch (Exception e) {
                     Log.i("TMS", "addListItem: " + e.toString());
+                } finally {
+                    if (inputStream != null) {
+                        inputStream.close();
+                    }
+                    if (reader != null) {
+                        reader.close();
+                    }
+                    if (bufferedReader != null) {
+                        bufferedReader.close();
+                    }
                 }
             }
         }

@@ -43,9 +43,15 @@ public class Util {
     public static long getFileSize(File file) throws Exception {
         long size = 0;
         if (file.exists()){
-            FileInputStream fis;
-            fis = new FileInputStream(file);
-            size = fis.available();
+            FileInputStream fis = null;
+            try {
+                fis = new FileInputStream(file);
+                size = fis.available();
+            } finally {
+                if (fis != null) {
+                    fis.close();
+                }
+            }
         }
         else{
             Log.e("TMS","文件不存在!");

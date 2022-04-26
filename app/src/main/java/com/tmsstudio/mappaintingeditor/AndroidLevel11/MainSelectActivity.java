@@ -23,7 +23,9 @@ import com.tmsstudio.mappaintingeditor.map_item;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -91,28 +93,6 @@ public class MainSelectActivity extends MainActivity {
 
                 } catch (Exception e) {
                     e.printStackTrace();
-                } finally {
-                    if (reader != null) {
-                        try {
-                            reader.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    if (inputStream != null) {
-                        try {
-                            inputStream.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    if (bufferedReader != null) {
-                        try {
-                            bufferedReader.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
                 }
             }
         }
@@ -126,6 +106,9 @@ public class MainSelectActivity extends MainActivity {
 
 
     private void addListItem(DocumentFile[] dir_list, int version) throws Exception {
+        InputStream inputStream = null;
+        Reader reader = null;
+        BufferedReader bufferedReader = null;
         if(dir_list != null){
             String ver = "";
             if(version == INTERNATIONAL){
@@ -160,6 +143,16 @@ public class MainSelectActivity extends MainActivity {
                     }
                 } catch (Exception e) {
                     Log.i("TMS", "addListItem: " + e.toString());
+                } finally {
+                    if (inputStream != null) {
+                        inputStream.close();
+                    }
+                    if (reader != null) {
+                        reader.close();
+                    }
+                    if (bufferedReader != null) {
+                        bufferedReader.close();
+                    }
                 }
             }
         }
