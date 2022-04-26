@@ -6,8 +6,11 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.Settings;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -39,11 +42,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
     private List<map_item> list = new ArrayList<>();    //每一个地图存档
     private ArrayList<HashMap<String, Object>> app_information = null;
     protected static final int REQUEST_EXTERNAL_STORAGE = 1;
+    protected static final int REQUEST_11_EXTERNAL_STORAGE = 1024;
     protected static String[] PERMISSIONS_STORAGE = {"android.permission.READ_EXTERNAL_STORAGE", "android.permission.WRITE_EXTERNAL_STORAGE"};
     protected static InputStream inputStream = null;
     protected static Reader reader = null;
@@ -95,7 +100,6 @@ public class MainActivity extends AppCompatActivity {
                     }
                     //存档迁移前的国际版
                     dir = new File(file_path_old);
-                    Log.i("TMS", "init_map_item: " + file_path_old);
                     dir_list = dir.listFiles();
                     if(!file_path_old.equals("")){
                         addListItem(dir_list, OLDINTERNATIONAL);
@@ -171,34 +175,62 @@ public class MainActivity extends AppCompatActivity {
                 ver = "[此应用]";
             }
             for(File t: dir_list){
-                File tempfile = new File(t.getPath());
-                File file=new File(tempfile, "levelname.txt");
-                inputStream = new FileInputStream(file);
-                reader = new InputStreamReader(inputStream);
-                bufferedReader = new BufferedReader(reader);
-                StringBuilder result = new StringBuilder();
-                String temp;
-                while ((temp = bufferedReader.readLine()) != null) {
-                    result.append(temp);
+                try {
+                    if(t.exists() && t.isDirectory()){  //文件要存在，并且是个文件夹
+                        File tempfile = new File(t.getPath());
+                        File file=new File(tempfile, "levelname.txt");
+                        File db =new File(tempfile, "db");
+                        if(!(db.exists() && db.isDirectory() && db.listFiles() != null && Objects.requireNonNull(db.listFiles()).length >= 1)){
+                            //世界已损坏
+                            continue;
+                        }
+                        StringBuilder result = new StringBuilder(t.getName());
+                        if(file.exists()){
+                            inputStream = new FileInputStream(file);
+                            reader = new InputStreamReader(inputStream);
+                            bufferedReader = new BufferedReader(reader);
+                            result = new StringBuilder();
+                            String temp;
+                            while ((temp = bufferedReader.readLine()) != null) {
+                                result.append(temp);
+                            }
+                        }
+                        map_item item = new map_item(result.toString(), Util.FormetFileSize(Util.getFileSizes(t)), t, ver);
+                        list.add(item);
+                    }
+                } catch (Exception e) {
+                    Log.i("TMS", "addListItem: " + e.toString());
                 }
-                map_item item = new map_item(result.toString(), Util.FormetFileSize(Util.getFileSizes(t)), t, ver);
-                list.add(item);
             }
         }
     }
 
+    /**
+     * 权限
+     */
     private void checkPermission() {
-        //检查权限（NEED_PERMISSION）是否被授权 PackageManager.PERMISSION_GRANTED表示同意授权
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                Toast.makeText(this, "请允许相关权限，否则无法正常使用本应用！", Toast.LENGTH_SHORT).show();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R ) {
+            if(!Environment.isExternalStorageManager()){
+                Toast.makeText(this, "请允许相关权限，否则无法正常使用本应用！", Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                startActivityForResult(intent, REQUEST_11_EXTERNAL_STORAGE);
+            } else {
+                init_map_item();
             }
-            //申请权限
-            ActivityCompat.requestPermissions(this, PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE);
 
         } else {
-            init_map_item();    //初始化，获得地图列表
+            //检查权限（NEED_PERMISSION）是否被授权 PackageManager.PERMISSION_GRANTED表示同意授权
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                    Toast.makeText(this, "请允许相关权限，否则无法正常使用本应用！", Toast.LENGTH_LONG).show();
+                }
+                //申请权限
+                ActivityCompat.requestPermissions(this, PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE);
+            } else {
+                init_map_item();    //初始化，获得地图列表
+            }
         }
+
     }
 
     /**
@@ -240,6 +272,18 @@ public class MainActivity extends AppCompatActivity {
                     init_map_item();    //初始化，获得地图列表
                 } else {
                     Toast.makeText(this, "授权被拒绝！", Toast.LENGTH_SHORT).show();
+                }
+                return;
+            }
+            case REQUEST_11_EXTERNAL_STORAGE: {
+                Log.i("TMS", "安卓11授权返回");
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    // 检查是否有权限
+                    if (Environment.isExternalStorageManager()) {
+                        init_map_item();
+                    } else {
+                        Toast.makeText(this, "授权被拒绝！", Toast.LENGTH_SHORT).show();
+                    }
                 }
                 return;
             }

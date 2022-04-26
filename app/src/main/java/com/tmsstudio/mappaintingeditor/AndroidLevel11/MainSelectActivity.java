@@ -136,17 +136,31 @@ public class MainSelectActivity extends MainActivity {
                 ver = "  [网易测试版]";
             }
             for(DocumentFile t: dir_list){
-                DocumentFile file = t.findFile("levelname.txt");
-                inputStream = Util.getInputStream(this, file);
-                reader = new InputStreamReader(inputStream);
-                bufferedReader = new BufferedReader(reader);
-                StringBuilder result = new StringBuilder();
-                String temp;
-                while ((temp = bufferedReader.readLine()) != null) {
-                    result.append(temp);
+                try {
+                    if(t.exists() && t.isDirectory()){
+                        DocumentFile file = t.findFile("levelname.txt");
+                        DocumentFile db = t.findFile("db");
+                        if(!(db != null && db.exists() && db.isDirectory() && db.listFiles().length >= 1)){
+                            //世界已损坏
+                            continue;
+                        }
+                        StringBuilder result = new StringBuilder(t.getName() == null ? "未知" : t.getName());
+                        if(file != null && file.exists()){
+                            inputStream = Util.getInputStream(this, file);
+                            reader = new InputStreamReader(inputStream);
+                            bufferedReader = new BufferedReader(reader);
+                            result = new StringBuilder();
+                            String temp;
+                            while ((temp = bufferedReader.readLine()) != null) {
+                                result.append(temp);
+                            }
+                        }
+                        map_item item = new map_item(result.toString(), Util.FormetFileSize(Util.getFileSizes(t)), t, ver);
+                        list.add(item);
+                    }
+                } catch (Exception e) {
+                    Log.i("TMS", "addListItem: " + e.toString());
                 }
-                map_item item = new map_item(result.toString(), Util.FormetFileSize(Util.getFileSizes(t)), t, ver);
-                list.add(item);
             }
         }
     }
