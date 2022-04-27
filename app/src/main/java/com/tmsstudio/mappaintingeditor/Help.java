@@ -37,6 +37,16 @@ public class Help extends AppCompatActivity {
         linearLayout.addView(view);
 
         view = (LinearLayout)getLayoutInflater().inflate(R.layout.activity_expand_view, null);
+        createExpand(view, "安卓11及其以上正确打开软件方式",
+                "1.打开本软件的所有文件访问权限\n" + "2.点击刷新地图列表（或完全退出软件重新打开）");
+        linearLayout.addView(view);
+
+        view = (LinearLayout)getLayoutInflater().inflate(R.layout.activity_expand_view, null);
+        createExpand(view, "安卓11及其以上任何方法都无法操作游戏内文件夹",
+                "1.进行root（不推荐）\n" + "2.使用VMOS等手机上的安卓模拟器（占用存储空间大）");
+        linearLayout.addView(view);
+
+        view = (LinearLayout)getLayoutInflater().inflate(R.layout.activity_expand_view, null);
         createExpand(view, "服务器里能用吗",
                 "1.您必须是服主（或拥有服务器存档的人）\n" +
                 "2.只需将服务器存档放进手机基岩版，即可正常使用软件。生成完毕后放回服务器即可。");

@@ -13,6 +13,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -40,11 +41,10 @@ import java.util.Random;
 
 public class ImportPicActivity extends AppCompatActivity{
     String folder;    //地图根文件夹路径
-//    ArrayList<String> arrayListName;
-//    int version;
     String name;
     ImageView show_image;
     CheckBox check_scall;
+    Spinner spinner;
     byte[] img;
     String picturePath;     //图片路径
     Button summon_map;
@@ -67,6 +67,7 @@ public class ImportPicActivity extends AppCompatActivity{
         show_image = findViewById(R.id.show_image_grid);
         check_scall = findViewById(R.id.check_complete);
         summon_map = findViewById(R.id.summon_map_grid);
+        spinner = findViewById(R.id.spinner);
 
         check_scall.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -109,10 +110,12 @@ public class ImportPicActivity extends AppCompatActivity{
 
                     Log.i("TMS", "本地文件路径: " + folder);
                     testDB = Util.openDB(testDB, folder);
-                    summonMapItem(mc_map, 0, testDB);
+                    int slot = Integer.parseInt(spinner.getSelectedItem().toString());  //根据用户选择的背包格子进行生成
+                    summonMapItem(mc_map, slot, testDB);
                     testDB = Util.closeDB(testDB);
 
                     Toast.makeText(ImportPicActivity.this, "生成成功，请打开游戏查看。", Toast.LENGTH_SHORT).show();
+                    spinner.setSelection((slot + 1) % 36);                              //生成完后编号自增1
                 } else {
                     Toast.makeText(ImportPicActivity.this, "请选择图片再生成！", Toast.LENGTH_SHORT).show();
                 }
