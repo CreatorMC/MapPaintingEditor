@@ -50,9 +50,6 @@ public class MainActivity extends AppCompatActivity {
     protected static final int REQUEST_EXTERNAL_STORAGE = 1;
     protected static final int REQUEST_11_EXTERNAL_STORAGE = 1024;
     protected static String[] PERMISSIONS_STORAGE = {"android.permission.READ_EXTERNAL_STORAGE", "android.permission.WRITE_EXTERNAL_STORAGE"};
-//    protected static InputStream inputStream = null;
-//    protected static Reader reader = null;
-//    protected static BufferedReader bufferedReader = null;
     public static final int INTERNATIONAL = 0;          //国际版
     public static final int NETEASE = 1;                //网易版
     public static final int NETEASETEST = 2;            //网易测试版
@@ -306,7 +303,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void getEmpower(MenuItem item) {
         AlertDialog dialog = new AlertDialog.Builder(this).setTitle("警告")
-                .setMessage("此功能专为安卓11及其以上的设备设计。\n\n此功能会让用户选择游戏内的地图，然后复制到本软件内的文件夹里。这样就能使用本软件的功能了。处理结束后，需要用户手动复制文件夹导入地图到游戏。\n\n软件内存储路径：\nAndroid/data/com.tmsstudio.mappaintingeditor/files/World\n\n是否要执行此操作？")
+                .setMessage("此功能专为安卓11及其以上的设备设计。\n\n此功能会让用户选择游戏内的地图，然后复制到本软件内的文件夹里。这样就能使用本软件的功能了。处理结束后，需要用户手动复制文件夹导入地图到游戏。\n\n授权时不要选择文件夹！直接点允许！\n\n软件内存储路径：\nAndroid/data/com.tmsstudio.mappaintingeditor/files/World\n\n是否要执行此操作？")
                 .setNegativeButton("取消", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
