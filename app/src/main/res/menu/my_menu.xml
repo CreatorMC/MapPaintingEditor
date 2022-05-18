@@ -6,14 +6,6 @@
         android:onClick="refreshList"
         android:title="@string/refresh" />
     <item
-        android:id="@+id/daorumap"
-        android:onClick="getEmpower"
-        android:title="@string/empower" />
-    <item
-        android:id="@+id/deletemap"
-        android:onClick="deleteMap"
-        android:title="@string/delete_map" />
-    <item
         android:id="@+id/help"
         android:onClick="getHelp"
         android:title="@string/help" />

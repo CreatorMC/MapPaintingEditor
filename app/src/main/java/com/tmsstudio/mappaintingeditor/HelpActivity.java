@@ -11,7 +11,7 @@ import android.widget.TextView;
 
 import com.tmsstudio.mappaintingeditor.Widget.ExpandView;
 
-public class Help extends AppCompatActivity {
+public class HelpActivity extends AppCompatActivity {
 
     LinearLayout linearLayout;
 
@@ -25,9 +25,9 @@ public class Help extends AppCompatActivity {
         LinearLayout view = (LinearLayout)getLayoutInflater().inflate(R.layout.activity_expand_view, null);
         createExpand(view, "软件读取不到世界存档",
                 "1.确保自己安装了MC，并且有存档\n" +
-                "2.确保存档的存储位置在“外部”（设置->档案->文件存储->外部）\n" +
+                "2.确保存档的存储位置在“外部”（设置->档案->文件存储->外部）\n"/* +
                 "3.若安卓11及其以上，请点击软件右上角，选择导入游戏内地图\n" +
-                "4.若安卓11及其以上，授权时不要选择其他路径，直接在data下授权（就是授权界面出现后直接点允许授权，不用选择文件夹）");
+                "4.若安卓11及其以上，授权时不要选择其他路径，直接在data下授权（就是授权界面出现后直接点允许授权，不用选择文件夹）"*/);
         linearLayout.addView(view);
 
         view = (LinearLayout)getLayoutInflater().inflate(R.layout.activity_expand_view, null);
@@ -41,10 +41,10 @@ public class Help extends AppCompatActivity {
                 "1.打开本软件的所有文件访问权限\n" + "2.点击刷新地图列表（或完全退出软件重新打开）");
         linearLayout.addView(view);
 
-        view = (LinearLayout)getLayoutInflater().inflate(R.layout.activity_expand_view, null);
+        /*view = (LinearLayout)getLayoutInflater().inflate(R.layout.activity_expand_view, null);
         createExpand(view, "安卓11及其以上任何方法都无法操作游戏内文件夹",
                 "1.进行root（不推荐）\n" + "2.使用VMOS等手机上的安卓模拟器（占用存储空间大）");
-        linearLayout.addView(view);
+        linearLayout.addView(view);*/
 
         view = (LinearLayout)getLayoutInflater().inflate(R.layout.activity_expand_view, null);
         createExpand(view, "服务器里能用吗",

@@ -247,13 +247,11 @@ public class Util {
     public static long getFileSizes(DocumentFile f) throws Exception {
         long size = 0;
         DocumentFile[] flist = f.listFiles();
-        if(flist != null) {
-            for (DocumentFile file : flist) {
-                if (file.isDirectory()) {
-                    size = size + getFileSizes(file);
-                } else {
-                    size = size + getFileSize(file);
-                }
+        for (DocumentFile file : flist) {
+            if (file.isDirectory()) {
+                size = size + getFileSizes(file);
+            } else {
+                size = size + getFileSize(file);
             }
         }
         return size;
