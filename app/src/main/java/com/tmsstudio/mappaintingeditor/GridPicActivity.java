@@ -278,7 +278,7 @@ public class GridPicActivity extends AppCompatActivity {
         }
         //让用户从图库中选择图片
         Intent intent = new Intent(Intent.ACTION_PICK);
-        intent.setType("image/*");
+        intent.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*");
         resultLauncher.launch(intent);
     }
 
@@ -358,18 +358,20 @@ public class GridPicActivity extends AppCompatActivity {
      * @param out
      */
     private void copyDir(File in, DocumentFile out) {
+        DocumentFile documentFile = out.findFile(in.getName());
         if (in.isDirectory()) {
-            out.createDirectory(in.getName());
+            if (documentFile == null) {
+                documentFile = out.createDirectory(in.getName());
+            }
             File[] files = in.listFiles();
             if (files == null) {
                 return;
             }
             for (File file : files) {
-                copyDir(file, out);
+                copyDir(file, documentFile);
             }
         } else {
             try {
-                DocumentFile documentFile = out.findFile(in.getName());
                 if (documentFile == null) {
                     documentFile = out.createFile("*/*", in.getName());
                 }
@@ -400,6 +402,21 @@ public class GridPicActivity extends AppCompatActivity {
                 for (File f : files) {
                     forEachDelete(f);
                 }
+            }
+        }
+        file.delete();
+    }
+
+    /**
+     * 遍历删除文件
+     *
+     * @param file
+     */
+    private void forEachDelete(DocumentFile file) {
+        if (file.isDirectory()) {
+            DocumentFile[] documentFiles = file.listFiles();
+            for (DocumentFile documentFile : documentFiles) {
+                forEachDelete(documentFile);
             }
         }
         file.delete();
@@ -442,8 +459,12 @@ public class GridPicActivity extends AppCompatActivity {
                                     emitter.onNext(slot);
                                 }
                                 Util.closeDB(testDB);
-
-                                copyDir(cacheDir, documentFile);
+                                for (DocumentFile f : documentFile.listFiles()){
+                                    forEachDelete(f);
+                                }
+                                for (File f : cacheDir.listFiles()){
+                                    copyDir(f, documentFile);
+                                }
                                 forEachDelete(cacheDir);
                             } else {
                                 emitter.onError(new RuntimeException("地图路径无效"));

@@ -473,7 +473,7 @@ public class ImportPicActivity extends AppCompatActivity {
             public void onClick(View view) {
                 //让用户从图库中选择图片
                 Intent intent = new Intent(Intent.ACTION_PICK);
-                intent.setType("image/*");
+                intent.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*");
                 resultLauncher.launch(intent);
             }
         });
@@ -542,14 +542,18 @@ public class ImportPicActivity extends AppCompatActivity {
         if (folder.startsWith(file.getAbsolutePath()) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             DocumentFile documentFile = toDocumentFile(folder);
             if (documentFile != null && documentFile.isDirectory()) {
-                File cacheDir = new File(getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), String.valueOf(System.currentTimeMillis()));
+                File cacheDir = new File(getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), documentFile.getName());
                 copyDir(documentFile, cacheDir);
-
                 testDB = Util.openDB(testDB, cacheDir.getAbsolutePath());
                 int slot = Integer.parseInt(spinner.getSelectedItem().toString());  //根据用户选择的背包格子进行生成
                 summonMapItem(bytes, slot, testDB);
                 testDB = Util.closeDB(testDB);
-                copyDir(cacheDir, documentFile);
+                for (DocumentFile f : documentFile.listFiles()){
+                    forEachDelete(f);
+                }
+                for (File f : cacheDir.listFiles()){
+                    copyDir(f, documentFile);
+                }
                 forEachDelete(cacheDir);
                 return slot;
             } else {
@@ -599,18 +603,20 @@ public class ImportPicActivity extends AppCompatActivity {
      * @param out
      */
     private void copyDir(File in, DocumentFile out) {
+        DocumentFile documentFile = out.findFile(in.getName());
         if (in.isDirectory()) {
-            out.createDirectory(in.getName());
+            if (documentFile == null) {
+                documentFile = out.createDirectory(in.getName());
+            }
             File[] files = in.listFiles();
             if (files == null) {
                 return;
             }
             for (File file : files) {
-                copyDir(file, out);
+                copyDir(file, documentFile);
             }
         } else {
             try {
-                DocumentFile documentFile = out.findFile(in.getName());
                 if (documentFile == null) {
                     documentFile = out.createFile("*/*", in.getName());
                 }
@@ -641,6 +647,21 @@ public class ImportPicActivity extends AppCompatActivity {
                 for (File f : files) {
                     forEachDelete(f);
                 }
+            }
+        }
+        file.delete();
+    }
+
+    /**
+     * 遍历删除文件
+     *
+     * @param file
+     */
+    private void forEachDelete(DocumentFile file) {
+        if (file.isDirectory()) {
+            DocumentFile[] documentFiles = file.listFiles();
+            for (DocumentFile documentFile : documentFiles) {
+                forEachDelete(documentFile);
             }
         }
         file.delete();
