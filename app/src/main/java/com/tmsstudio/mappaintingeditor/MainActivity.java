@@ -17,6 +17,7 @@ import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.Settings;
 import android.text.method.LinkMovementMethod;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -137,6 +138,7 @@ public class MainActivity extends AppCompatActivity {
      * 初始化数据
      */
     private void initData() {
+        Toast.makeText(this, "正在扫描游戏存档中", Toast.LENGTH_LONG).show();
         Observable.create(new ObservableOnSubscribe<MapItem>() {
                     @Override
                     public void subscribe(ObservableEmitter<MapItem> emitter) throws Exception {
@@ -170,7 +172,6 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }
                             }
-
                         } else {
                             //android 11 以下处理
                             File file = new File(Environment.getExternalStorageDirectory(), "Android/data");
@@ -268,9 +269,9 @@ public class MainActivity extends AppCompatActivity {
                         if (dir.isDirectory()) {
                             DocumentFile[] files = dir.listFiles();
                             for (DocumentFile file : files) {
-                                DocumentFile levelname = dir.findFile("levelname.txt");
-                                DocumentFile db = dir.findFile("db");
-                                DocumentFile icon = dir.findFile("world_icon.jpeg");
+                                DocumentFile levelname = file.findFile("levelname.txt");
+                                DocumentFile db = file.findFile("db");
+                                DocumentFile icon = file.findFile("world_icon.jpeg");
                                 if (levelname != null && levelname.isFile() && db != null && db.isDirectory()) {
                                     try (InputStream inputStream = getContentResolver().openInputStream(levelname.getUri())) {
                                         String name = readText(inputStream);
@@ -329,7 +330,7 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onComplete() {
-                        Toast.makeText(MainActivity.this, "初始化完成", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, "扫描完成", Toast.LENGTH_SHORT).show();
                     }
                 });
     }

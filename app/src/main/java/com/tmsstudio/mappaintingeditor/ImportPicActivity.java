@@ -487,9 +487,6 @@ public class ImportPicActivity extends AppCompatActivity {
                         summon_map.setEnabled(false);
                         byte[] mc_map = PicFactory.toMinecraftMap(img);
                         summon_map.setEnabled(true);
-                        if (mc_map == null || mc_map.length <= 0) {
-                            throw new RuntimeException("您可能需要更换图片？");
-                        }
 
                         Log.i("TMS", "本地文件路径: " + folder);
                         int slot = startEditWorld(mc_map, folder);

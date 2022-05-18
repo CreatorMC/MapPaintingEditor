@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.MenuItem;
@@ -149,7 +150,11 @@ public class GridPicActivity extends AppCompatActivity {
                     @Override
                     public void onActivityResult(ActivityResult result) {
                         //用户选择完要处理的图片
-                        Uri selectedImage = result.getData().getData(); //获取系统返回的照片的Uri
+                        Intent intent = result.getData();
+                        if (intent == null) {
+                            return;
+                        }
+                        Uri selectedImage = intent.getData(); //获取系统返回的照片的Uri
                         String[] filePathColumn = {MediaStore.Images.Media.DATA};
                         Cursor cursor = getContentResolver().query(selectedImage, filePathColumn, null, null, null);//从系统表中查询指定Uri对应的照片
                         cursor.moveToFirst();
@@ -234,11 +239,11 @@ public class GridPicActivity extends AppCompatActivity {
                 return;
             }
             String rr = editText_row.getText().toString().trim();
-            if (rr != null && !"".equals(rr)) {
+            if (!TextUtils.isEmpty(rr)) {
                 row = Integer.parseInt(rr);
             }
             String cc = editText_col.getText().toString().trim();
-            if (cc != null && !"".equals(cc)) {
+            if (TextUtils.isEmpty(cc)) {
                 col = Integer.parseInt(cc);
             }
             if (img == null || img.length == 0) {
@@ -246,7 +251,7 @@ public class GridPicActivity extends AppCompatActivity {
             }
             if (row != 0 && col != 0 && row * col <= BEIBAO_COUNT) {
                 bitmapArrayList = PicFactory.preparePicTo(img, row, col, 128, check_complete.isChecked());
-                if (bitmapArrayList != null && bitmapArrayList.size() >= 1) {
+                if (bitmapArrayList.size() >= 1) {
                     grid_view.setNumColumns(col);
                     grid_view.setAdapter(new GridViewAdapter(GridPicActivity.this, bitmapArrayList, row, col));
                     show_image.setVisibility(View.INVISIBLE);
@@ -415,8 +420,6 @@ public class GridPicActivity extends AppCompatActivity {
         summon_ing = true;
         text_state.setText(GridPicActivity.this.getString(R.string.state) + "正在生成，请勿退出");
         Toast.makeText(GridPicActivity.this, "生成中，请勿终止应用运行！！！", Toast.LENGTH_SHORT).show();
-
-
         Observable.create(new ObservableOnSubscribe<Integer>() {
                     @Override
                     public void subscribe(ObservableEmitter<Integer> emitter) throws Exception {
@@ -461,7 +464,6 @@ public class GridPicActivity extends AppCompatActivity {
                         }
                         emitter.onComplete();
                     }
-
                 })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -482,7 +484,6 @@ public class GridPicActivity extends AppCompatActivity {
 
                     @Override
                     public void onComplete() {
-
                         text_state.setText(GridPicActivity.this.getString(R.string.state) + "生成成功o(〃＾▽＾〃)o");
                         Toast.makeText(GridPicActivity.this, "生成成功，请打开游戏查看。", Toast.LENGTH_SHORT).show();
                         summon_map.setEnabled(true);
