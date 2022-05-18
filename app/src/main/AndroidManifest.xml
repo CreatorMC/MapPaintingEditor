@@ -27,6 +27,7 @@
         tools:ignore="GoogleAppIndexingWarning">
         <activity
             android:name=".HelpActivity"
+            android:screenOrientation="portrait"
             android:parentActivityName=".MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -34,6 +35,7 @@
         </activity>
         <activity
             android:name=".GridPicActivity"
+            android:screenOrientation="portrait"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:parentActivityName=".MainActivity">
             <meta-data
@@ -42,6 +44,7 @@
         </activity>
         <activity
             android:name=".TransitionActivity"
+            android:screenOrientation="portrait"
             android:parentActivityName=".MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -49,6 +52,7 @@
         </activity>
         <activity
             android:name=".ImportPicActivity"
+            android:screenOrientation="portrait"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:parentActivityName=".MainActivity">
 
@@ -59,6 +63,7 @@
         </activity>
         <activity
             android:name=".MainActivity"
+            android:screenOrientation="portrait"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:exported="true">
             <intent-filter>
