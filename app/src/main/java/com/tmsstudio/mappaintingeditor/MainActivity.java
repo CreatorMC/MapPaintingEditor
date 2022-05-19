@@ -1,14 +1,20 @@
 package com.tmsstudio.mappaintingeditor;
 
 import android.Manifest;
-import android.app.Activity;
+import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.DocumentsContract;
 import android.provider.Settings;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
@@ -19,210 +25,434 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.documentfile.provider.DocumentFile;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.tmsstudio.mappaintingeditor.AndroidLevel11.MainSelectActivity;
-import com.tmsstudio.mappaintingeditor.Message.Message;
+import com.permissionx.guolindev.PermissionX;
+import com.permissionx.guolindev.callback.ForwardToSettingsCallback;
+import com.permissionx.guolindev.callback.RequestCallback;
+import com.permissionx.guolindev.request.ForwardScope;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileDescriptor;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
+
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 
 public class MainActivity extends AppCompatActivity {
-    private List<map_item> list = new ArrayList<>();    //每一个地图存档
-    private ArrayList<HashMap<String, Object>> app_information = null;
-    protected static final int REQUEST_EXTERNAL_STORAGE = 1;
-    protected static final int REQUEST_11_EXTERNAL_STORAGE = 1024;
-    protected static String[] PERMISSIONS_STORAGE = {"android.permission.READ_EXTERNAL_STORAGE", "android.permission.WRITE_EXTERNAL_STORAGE"};
-    public static final int INTERNATIONAL = 0;          //国际版
-    public static final int NETEASE = 1;                //网易版
-    public static final int NETEASETEST = 2;            //网易测试版
-    public static final int OLDINTERNATIONAL = 4;       //存档迁移前的国际版
-    public static final int DATAAPP = 3;                //此应用
+    private final List<MapItem> mapItemList = new ArrayList<>();    //每一个地图存档
+    private MapItemAdapter mapItemAdapter;
+    private ActivityResultLauncher<Intent> externalStorageResultLauncher;
+    private ActivityResultLauncher<Intent> resultLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        checkPermission();      //检查权限
-
-    }
-
-    private void init_map_item() {
-        list.clear();
-        Log.i("TMS", "初始化地图");
-        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
-            if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-                Log.i("TMS", "加载地图中");
-                try {
-                    ArrayList<HashMap<String, Object>> arrayList = Util.getItems(this);     //得到设备上的所有应用信息
-                    app_information = arrayList;
-                    File storage = Environment.getExternalStorageDirectory();                       //sd存储根目录
-                    Log.i("TMS", "init_map_item: " + storage);
-                    String file_path = "";                                                          //国际基岩版
-                    String file_path_netease = "";                                                  //网易基岩版
-                    String file_path_netease_test = "";                                             //网易测试基岩版
-                    String file_path_old = storage.getPath() + "/games/com.mojang/minecraftWorlds"; //存档迁移前国际版
-                    for(HashMap<String, Object> t: arrayList){
-                        if("Minecraft".equals(t.get("appName").toString())){
-                            file_path = storage.getPath() + "/Android/data/" + t.get("packageName") + "/files/games/com.mojang/minecraftWorlds";
-                        } else if("我的世界".equals(t.get("appName").toString())){
-                            file_path_netease = storage.getPath() + "/Android/data/" + t.get("packageName") + "/files/minecraftWorlds";
-                        } else if("我的世界测试版".equals(t.get("appName").toString())) {
-                            file_path_netease_test = storage.getPath() + "/Android/data/" + t.get("packageName") + "/files/minecraftWorlds";
-                        }
-                    }
-                    //国际版
-                    File dir = new File(file_path);
-                    File[] dir_list = dir.listFiles();
-                    if(!file_path.equals("")){
-                        addListItem(dir_list, INTERNATIONAL);
-                    }
-                    //存档迁移前的国际版
-                    dir = new File(file_path_old);
-                    dir_list = dir.listFiles();
-                    if(!file_path_old.equals("")){
-                        addListItem(dir_list, OLDINTERNATIONAL);
-                    }
-                    //网易版
-                    if(!file_path_netease.equals("")){
-                        dir = new File(file_path_netease);
-                        dir_list = dir.listFiles();
-                        addListItem(dir_list, NETEASE);
-                    }
-                    //网易测试版
-                    if(!file_path_netease_test.equals("")){
-                        dir = new File(file_path_netease_test);
-                        dir_list = dir.listFiles();
-                        addListItem(dir_list, NETEASETEST);
-                    }
-                    //软件内部
-                    dir = this.getExternalFilesDir("World");
-                    if(dir != null){
-                        dir_list = dir.listFiles();
-                        addListItem(dir_list, DATAAPP);
-                    }
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
         RecyclerView recyclerView = findViewById(R.id.recycler_view);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
-        MapItemAdapter adapter = new MapItemAdapter(list);
-        recyclerView.setAdapter(adapter);
-    }
+        mapItemAdapter = new MapItemAdapter(mapItemList);
+        recyclerView.setAdapter(mapItemAdapter);
 
-
-    private void addListItem(File[] dir_list, int version) throws Exception {
-        if(dir_list != null && dir_list.length >= 1){
-            String ver = "";
-            if(version == INTERNATIONAL){
-                ver = "[国际版]";
-            } else if(version == NETEASE){
-                ver = "[网易版]";
-            } else if(version == NETEASETEST){
-                ver = "[网易测试版]";
-            }  else if(version == OLDINTERNATIONAL){
-                ver = "[国际版*]";
-            } else if (version == DATAAPP){
-                ver = "[此应用]";
-            }
-            for(File t: dir_list){
-                InputStream inputStream = null;
-                Reader reader = null;
-                BufferedReader bufferedReader = null;
-                try {
-                    if(t.exists() && t.isDirectory()){  //文件要存在，并且是个文件夹
-                        File file = new File(t, "levelname.txt");
-                        File db = new File(t, "db");
-                        if(!(db.exists() && db.isDirectory() && db.listFiles() != null && Objects.requireNonNull(db.listFiles()).length >= 1)){
-                            //世界已损坏
-                            continue;
+        if (checkPermission() && checkExternalStoragePermission() && checkASFPermission()) {
+            initData();
+        } else {
+            externalStorageResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+                @Override
+                public void onActivityResult(ActivityResult result) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                        if (Environment.isExternalStorageManager()) {
+                            Toast.makeText(MainActivity.this, "授权成功", Toast.LENGTH_LONG).show();
+                            requestPermissions();
+                        } else {
+                            Toast.makeText(MainActivity.this, "授权失败", Toast.LENGTH_LONG).show();
+                            finish();
                         }
-                        StringBuilder result = new StringBuilder(t.getName());
-                        if(file.exists()){
-                            inputStream = new FileInputStream(file);
-                            reader = new InputStreamReader(inputStream);
-                            bufferedReader = new BufferedReader(reader);
-                            result = new StringBuilder();
-                            String temp;
-                            while ((temp = bufferedReader.readLine()) != null) {
-                                result.append(temp);
-                            }
-                        }
-                        map_item item = new map_item(result.toString(), Util.FormetFileSize(Util.getFileSizes(t)), t, ver);
-                        list.add(item);
-                    }
-                } catch (Exception e) {
-                    Log.i("TMS", "addListItem: " + e.toString());
-                } finally {
-                    if (inputStream != null) {
-                        inputStream.close();
-                    }
-                    if (reader != null) {
-                        reader.close();
-                    }
-                    if (bufferedReader != null) {
-                        bufferedReader.close();
                     }
                 }
-            }
+            });
+            resultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+                @SuppressLint("WrongConstant")
+                @Override
+                public void onActivityResult(ActivityResult result) {
+                    Intent data = result.getData();
+                    if (data != null) {
+                        Uri uri = data.getData();
+                        if (uri != null) {
+                            getContentResolver().takePersistableUriPermission(uri, data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION));
+                            Toast.makeText(MainActivity.this, "授权成功", Toast.LENGTH_LONG).show();
+                            initData();
+                            return;
+                        }
+                    }
+                    Toast.makeText(MainActivity.this, "授权失败", Toast.LENGTH_LONG).show();
+                    finish();
+                }
+            });
+
+            new AlertDialog.Builder(this)
+                    .setTitle("提示")
+                    .setMessage("需要存储权限才能进行操作，Android 11及以上需要额外授权Android/data目录访问权限")
+                    .setPositiveButton("确认", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            requestPermission();
+                        }
+                    })
+                    .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            finish();
+                        }
+                    })
+                    .setCancelable(false)
+                    .show();
+        }
+
+    }
+
+    /**
+     * 初始化数据
+     */
+    private void initData() {
+        Toast.makeText(this, "正在扫描游戏存档中", Toast.LENGTH_LONG).show();
+        Observable.create(new ObservableOnSubscribe<MapItem>() {
+                    @Override
+                    public void subscribe(ObservableEmitter<MapItem> emitter) throws Exception {
+                        //单独扫描
+                        forEach(emitter, new File(Environment.getExternalStorageDirectory(), "games/com.mojang/minecraftWorlds"), WorldType.OutdatedBedrock);
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                            //android 10 以上处理
+                            DocumentFile documentFile = getDataDocumentFile();
+                            for (DocumentFile file : documentFile.listFiles()) {
+                                {
+                                    DocumentFile folder = findDocumentFile(file, "files/minecraftWorlds");
+                                    if (folder != null) {
+                                        forEach(emitter, folder, WorldType.NetEaseBedrock);
+                                        continue;
+                                    }
+                                }
+                                {
+                                    DocumentFile folder = findDocumentFile(file, "files/games/com.mojang/minecraftWorlds");
+                                    if (folder != null) {
+                                        try {
+                                            PackageInfo packageInfo = getPackageManager().getPackageInfo(file.getName(), 0);
+                                            File so = new File(packageInfo.applicationInfo.nativeLibraryDir, "libminecraftpe.so");
+                                            if (so.exists()) {
+                                                forEach(emitter, folder, WorldType.Bedrock);
+                                            } else {
+                                                throw new RuntimeException("not minecraft");
+                                            }
+                                        } catch (PackageManager.NameNotFoundException | RuntimeException e) {
+                                            forEach(emitter, folder, WorldType.Unknown);
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            //android 11 以下处理
+                            File file = new File(Environment.getExternalStorageDirectory(), "Android/data");
+                            File[] files = file.listFiles();
+                            if (files != null) {
+                                for (File f : files) {
+                                    {
+                                        File folder = new File(f, "files/minecraftWorlds");
+                                        if (folder.exists()) {
+                                            forEach(emitter, folder, WorldType.NetEaseBedrock);
+                                            continue;
+                                        }
+                                    }
+                                    {
+                                        File folder = new File(f, "files/games/com.mojang/minecraftWorlds");
+                                        if (folder.exists()) {
+                                            try {
+                                                PackageInfo packageInfo = getPackageManager().getPackageInfo(file.getName(), 0);
+                                                File so = new File(packageInfo.applicationInfo.nativeLibraryDir, "libminecraftpe.so");
+                                                if (so.exists()) {
+                                                    forEach(emitter, folder, WorldType.Bedrock);
+                                                } else {
+                                                    throw new RuntimeException("not minecraft");
+                                                }
+                                            } catch (PackageManager.NameNotFoundException | RuntimeException e) {
+                                                forEach(emitter, folder, WorldType.Unknown);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        emitter.onComplete();
+                    }
+
+                    /**
+                     * 根据路径查找对应文件
+                     * @param file
+                     * @param path
+                     * @return
+                     */
+                    private DocumentFile findDocumentFile(DocumentFile file, String path) {
+                        if (file.isDirectory()) {
+                            String[] names = path.split(File.separator);
+                            for (String name : names) {
+                                file = file.findFile(name);
+                                if (file == null) {
+                                    return null;
+                                }
+                            }
+                            return file;
+                        }
+                        return null;
+                    }
+
+                    /**
+                     * 转为路径
+                     *
+                     * @param file
+                     * @return
+                     */
+                    public String toPath(DocumentFile file) {
+                        Uri uri = file.getUri();
+                        return Environment.getExternalStorageDirectory().getAbsolutePath() + uri.getPath().replaceFirst("tree/primary:Android/data/document/primary:", "");
+                    }
+
+                    private void forEach(ObservableEmitter<MapItem> emitter, File dir, WorldType type) {
+                        if (dir.isDirectory()) {
+                            File[] files = dir.listFiles();
+                            if (files == null) {
+                                return;
+                            }
+                            for (File file : files) {
+                                File levelname = new File(file, "levelname.txt");
+                                File db = new File(file, "db");
+                                File icon = new File(file, "world_icon.jpeg");
+                                if (levelname.exists() && levelname.isFile() && db.exists() && db.isDirectory()) {
+                                    try (FileInputStream inputStream = new FileInputStream(levelname)) {
+                                        String name = readText(inputStream);
+                                        if (icon.exists() && icon.isFile()) {
+                                            Bitmap bitmap = BitmapFactory.decodeFile(icon.getAbsolutePath());
+                                            emitter.onNext(new MapItem(bitmap, name, file.getAbsolutePath(), Util.getFileSizes(file), type));
+                                        } else {
+                                            emitter.onNext(new MapItem(name, file.getAbsolutePath(), Util.getFileSizes(file), type));
+                                        }
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    private void forEach(ObservableEmitter<MapItem> emitter, DocumentFile dir, WorldType type) {
+                        if (dir.isDirectory()) {
+                            DocumentFile[] files = dir.listFiles();
+                            for (DocumentFile file : files) {
+                                DocumentFile levelname = file.findFile("levelname.txt");
+                                DocumentFile db = file.findFile("db");
+                                DocumentFile icon = file.findFile("world_icon.jpeg");
+                                if (levelname != null && levelname.isFile() && db != null && db.isDirectory()) {
+                                    try (InputStream inputStream = getContentResolver().openInputStream(levelname.getUri())) {
+                                        String name = readText(inputStream);
+                                        if (icon != null && icon.isFile()) {
+                                            InputStream in = getContentResolver().openInputStream(icon.getUri());
+                                            Bitmap bitmap = BitmapFactory.decodeStream(in);
+                                            in.close();
+                                            emitter.onNext(new MapItem(bitmap, name, toPath(file), Util.getFileSizes(file), type));
+                                        } else {
+                                            emitter.onNext(new MapItem(name, toPath(file), Util.getFileSizes(file), type));
+                                        }
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    /**
+                     * 读取文本
+                     *
+                     * @param inputStream
+                     * @return
+                     * @throws IOException
+                     */
+                    private String readText(InputStream inputStream) throws IOException {
+                        StringBuilder builder = new StringBuilder();
+                        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream))) {
+                            String temp;
+                            while ((temp = bufferedReader.readLine()) != null) {
+                                builder.append(temp);
+                            }
+                        }
+                        return builder.toString();
+                    }
+
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<MapItem>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+                    }
+
+                    @Override
+                    public void onNext(MapItem mapItem) {
+                        mapItemList.add(mapItem);
+                        mapItemAdapter.notifyItemInserted(mapItemList.size());
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Toast.makeText(MainActivity.this, "发生错误:" + e.getMessage(), Toast.LENGTH_LONG).show();
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        Toast.makeText(MainActivity.this, "扫描完成", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    /**
+     * 刷新数据
+     */
+    private void refreshData() {
+        mapItemAdapter.notifyItemRangeRemoved(0, mapItemList.size());
+        mapItemList.clear();
+        initData();
+    }
+
+    /**
+     * 获取data文件对象
+     *
+     * @return
+     */
+    private DocumentFile getDataDocumentFile() {
+        return DocumentFile.fromTreeUri(this, Uri.parse("content://com.android.externalstorage.documents/tree/primary%3AAndroid%2Fdata"));
+    }
+
+    /**
+     * 请求全部文件访问权限
+     */
+    private void requestPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+            intent.setData(Uri.parse("package:" + getPackageName()));
+            externalStorageResultLauncher.launch(intent);
+        } else {
+            requestPermissions();
         }
     }
 
     /**
-     * 权限
+     * 请求多个权限
      */
-    private void checkPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R ) {
-            if(!Environment.isExternalStorageManager()){
-                Toast.makeText(this, "请允许相关权限，否则无法正常使用本应用！", Toast.LENGTH_LONG).show();
-                Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
-                startActivityForResult(intent, REQUEST_11_EXTERNAL_STORAGE);
-            } else {
-                init_map_item();
-            }
-
-        } else {
-            //检查权限（NEED_PERMISSION）是否被授权 PackageManager.PERMISSION_GRANTED表示同意授权
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                    Toast.makeText(this, "请允许相关权限，否则无法正常使用本应用！", Toast.LENGTH_LONG).show();
-                }
-                //申请权限
-                ActivityCompat.requestPermissions(this, PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE);
-            } else {
-                init_map_item();    //初始化，获得地图列表
-            }
+    private void requestPermissions() {
+        List<String> permissions = new ArrayList<>();
+        permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+        permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            permissions.add(Manifest.permission.MANAGE_EXTERNAL_STORAGE);
         }
+        PermissionX.init(this)
+                .permissions(permissions)
+                .setDialogTintColor(Color.parseColor("#1972e8"), Color.parseColor("#8ab6f5"))
+                .onForwardToSettings(new ForwardToSettingsCallback() {
+                    @Override
+                    public void onForwardToSettings(@NonNull ForwardScope scope, @NonNull List<String> deniedList) {
+                        scope.showForwardToSettingsDialog(deniedList, "打开设置授权", "确定", "取消");
+                    }
+                })
+                .request(new RequestCallback() {
+                    @Override
+                    public void onResult(boolean allGranted, @NonNull List<String> grantedList, @NonNull List<String> deniedList) {
+                        if (allGranted) {
+                            Toast.makeText(MainActivity.this, "授权成功", Toast.LENGTH_LONG).show();
+                            if (checkASFPermission()) {
+                                initData();
+                            } else {
+                                requestASFPermission();
+                            }
+                        } else {
+                            Toast.makeText(MainActivity.this, "授权失败", Toast.LENGTH_LONG).show();
+                            finish();
+                        }
+                    }
+                });
+    }
 
+    /**
+     * 请求ASF文件访问框架权限
+     */
+    private void requestASFPermission() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+        intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION | Intent.FLAG_GRANT_PREFIX_URI_PERMISSION);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, getDataDocumentFile().getUri());
+        }
+        resultLauncher.launch(intent);
+    }
+
+    /**
+     * 检查存储权限
+     *
+     * @return
+     */
+    private boolean checkPermission() {
+        return ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    /**
+     * 检查外部存储权限
+     *
+     * @return
+     */
+    private boolean checkExternalStoragePermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            return Environment.isExternalStorageManager();
+        }
+        return true;
+    }
+
+    /**
+     * 检查ASF文件访问框架权限
+     *
+     * @return
+     */
+    private boolean checkASFPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            return !getContentResolver().getPersistedUriPermissions().isEmpty();
+        }
+        return true;
     }
 
     /**
      * 显示关于对话框
      */
-    private void showNormalDialog(){
+    private void showNormalDialog() {
         final AlertDialog.Builder normalDialog = new AlertDialog.Builder(MainActivity.this);
         final View dialogView = LayoutInflater.from(MainActivity.this).inflate(R.layout.menu_about, null);
         normalDialog.setTitle("关于");
@@ -242,38 +472,11 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId()){
+        switch (item.getItemId()) {
             case R.id.menu_about:
                 showNormalDialog();
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case REQUEST_EXTERNAL_STORAGE: {
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Toast.makeText(this, "授权成功！", Toast.LENGTH_SHORT).show();
-                    init_map_item();    //初始化，获得地图列表
-                } else {
-                    Toast.makeText(this, "授权被拒绝！", Toast.LENGTH_SHORT).show();
-                }
-                return;
-            }
-            case REQUEST_11_EXTERNAL_STORAGE: {
-                Log.i("TMS", "安卓11授权返回");
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    // 检查是否有权限
-                    if (Environment.isExternalStorageManager()) {
-                        init_map_item();
-                    } else {
-                        Toast.makeText(this, "授权被拒绝！", Toast.LENGTH_SHORT).show();
-                    }
-                }
-                return;
-            }
-        }
     }
 
     @Override
@@ -287,71 +490,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        switch (requestCode) {
-            case (Message.SELECT_MAP_FINISH):
-            {
-                if(resultCode == Activity.RESULT_OK){
-                    //选择地图完成，返回主界面时
-                    checkPermission();
-                }
-            }
-        }
-    }
-
-    public void getEmpower(MenuItem item) {
-        AlertDialog dialog = new AlertDialog.Builder(this).setTitle("警告")
-                .setMessage("此功能专为安卓11及其以上的设备设计。\n\n此功能会让用户选择游戏内的地图，然后复制到本软件内的文件夹里。这样就能使用本软件的功能了。处理结束后，需要用户手动复制文件夹导入地图到游戏。\n\n授权时不要选择文件夹！直接点允许！\n\n软件内存储路径：\nAndroid/data/com.tmsstudio.mappaintingeditor/files/World\n\n是否要执行此操作？")
-                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-
-                    }
-                })
-                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        Toast.makeText(MainActivity.this, "加载时间可能过长，请耐心等待，黑屏是正常现象。", Toast.LENGTH_LONG).show();
-                        Intent intent = new Intent(MainActivity.this, MainSelectActivity.class);
-                        intent.putExtra(Message.EXTRA_MESSAGE_TO_MAINSELECT, app_information);
-                        startActivityForResult(intent, Message.SELECT_MAP_FINISH);
-                    }
-                })
-                .create();
-        dialog.show();
-    }
-
     public void refreshList(MenuItem item) {
-        checkPermission();
+        refreshData();
         Toast.makeText(this, "刷新完成", Toast.LENGTH_SHORT).show();
     }
 
-    public void deleteMap(MenuItem item) {
-        AlertDialog dialog = new AlertDialog.Builder(this).setTitle("警告")
-                .setMessage("此操作会删除带有“[此应用]”字样的地图（也就是导入到本软件内的地图）\n\n确定要继续吗？")
-                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-
-                    }
-                })
-                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        File tempDir = MainActivity.this.getExternalFilesDir("World");
-                        Util.deleteFile(tempDir);
-                        Toast.makeText(MainActivity.this, "删除完成", Toast.LENGTH_LONG).show();
-                        checkPermission();
-                    }
-                })
-                .create();
-        dialog.show();
-    }
-
     public void getHelp(MenuItem item) {
-        Intent intent = new Intent(MainActivity.this, Help.class);
+        Intent intent = new Intent(MainActivity.this, HelpActivity.class);
         startActivity(intent);
     }
 }
