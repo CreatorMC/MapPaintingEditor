@@ -6,15 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.util.Log;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.lang.ref.WeakReference;
-import java.util.Arrays;
+import java.io.*;
 
 public class PicTool {
 

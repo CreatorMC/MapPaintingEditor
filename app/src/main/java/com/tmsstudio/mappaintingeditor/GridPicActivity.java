@@ -17,14 +17,7 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.EditText;
-import android.widget.GridView;
-import android.widget.ImageView;
-import android.widget.TextView;
-import android.widget.Toast;
-
+import android.widget.*;
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
@@ -33,19 +26,9 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.documentfile.provider.DocumentFile;
-
 import com.litl.leveldb.DB;
 import com.tmsstudio.mappaintingeditor.Message.Message;
 import com.tmsstudio.mappaintingeditor.PicFactory.PicFactory;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
@@ -53,6 +36,9 @@ import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
+
+import java.io.*;
+import java.util.ArrayList;
 
 
 public class GridPicActivity extends AppCompatActivity {
@@ -239,21 +225,22 @@ public class GridPicActivity extends AppCompatActivity {
                 return;
             }
             String rr = editText_row.getText().toString().trim();
+            int r = 0, l = 0;
             if (!TextUtils.isEmpty(rr)) {
-                row = Integer.parseInt(rr);
+                r = Integer.parseInt(rr);
             }
             String cc = editText_col.getText().toString().trim();
-            if (TextUtils.isEmpty(cc)) {
-                col = Integer.parseInt(cc);
+            if (!TextUtils.isEmpty(cc)) {
+                l = Integer.parseInt(cc);
             }
             if (img == null || img.length == 0) {
                 return;
             }
-            if (row != 0 && col != 0 && row * col <= BEIBAO_COUNT) {
-                bitmapArrayList = PicFactory.preparePicTo(img, row, col, 128, check_complete.isChecked());
+            if (r != 0 && l != 0 && r * l <= BEIBAO_COUNT) {
+                bitmapArrayList = PicFactory.preparePicTo(img, r, l, 128, check_complete.isChecked());
                 if (bitmapArrayList.size() >= 1) {
-                    grid_view.setNumColumns(col);
-                    grid_view.setAdapter(new GridViewAdapter(GridPicActivity.this, bitmapArrayList, row, col));
+                    grid_view.setNumColumns(l);
+                    grid_view.setAdapter(new GridViewAdapter(GridPicActivity.this, bitmapArrayList, r, l));
                     show_image.setVisibility(View.INVISIBLE);
                     grid_view.setVisibility(View.VISIBLE);
                 }

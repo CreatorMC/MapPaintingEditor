@@ -7,10 +7,23 @@
         <entry key="..\:/Android/MapPaintingEditor/app/src/main/res/layout/activity_main.xml" value="0.3432971014492754" />
         <entry key="..\:/Android/MapPaintingEditor/app/src/main/res/layout/activity_map_item.xml" value="0.3432971014492754" />
         <entry key="..\:/Android/MapPaintingEditor/app/src/main/res/menu/my_menu.xml" value="0.34479166666666666" />
+        <entry key="..\:/AndroidAPP/MapPaintingEditor/app/src/main/res/layout/activity11_main_select.xml" value="0.1" />
+        <entry key="..\:/AndroidAPP/MapPaintingEditor/app/src/main/res/layout/activity_expand_view.xml" value="0.22826086956521738" />
+        <entry key="..\:/AndroidAPP/MapPaintingEditor/app/src/main/res/layout/activity_grid_pic.xml" value="0.22826086956521738" />
+        <entry key="..\:/AndroidAPP/MapPaintingEditor/app/src/main/res/layout/activity_help.xml" value="0.22826086956521738" />
+        <entry key="..\:/AndroidAPP/MapPaintingEditor/app/src/main/res/layout/activity_main.xml" value="0.1" />
+        <entry key="..\:/AndroidAPP/MapPaintingEditor/app/src/main/res/layout/activity_map_item.xml" value="0.4" />
+        <entry key="..\:/AndroidAPP/MapPaintingEditor/app/src/main/res/layout/activity_transition.xml" value="0.22826086956521738" />
+        <entry key="..\:/AndroidAPP/MapPaintingEditor/app/src/main/res/layout/menu_about.xml" value="0.264" />
+        <entry key="..\:/AndroidAPP/MapPaintingEditor/app/src/main/res/layout/switch_item.xml" value="0.22826086956521738" />
+        <entry key="..\:/AndroidAPP/MapPaintingEditor/app/src/main/res/menu/my_menu.xml" value="0.2734375" />
       </map>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" project-jdk-name="1.8" project-jdk-type="JavaSDK">
+  <component name="FrameworkDetectionExcludesConfiguration">
+    <file type="web" url="file://$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="Android API 31 Platform" project-jdk-type="Android SDK">
     <output url="file://$PROJECT_DIR$/build/classes" />
   </component>
   <component name="ProjectType">

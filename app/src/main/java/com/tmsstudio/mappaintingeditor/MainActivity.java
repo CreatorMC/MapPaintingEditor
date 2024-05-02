@@ -24,7 +24,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
@@ -37,21 +36,10 @@ import androidx.core.content.ContextCompat;
 import androidx.documentfile.provider.DocumentFile;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.permissionx.guolindev.PermissionX;
 import com.permissionx.guolindev.callback.ForwardToSettingsCallback;
 import com.permissionx.guolindev.callback.RequestCallback;
 import com.permissionx.guolindev.request.ForwardScope;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
-
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
@@ -60,11 +48,18 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
 public class MainActivity extends AppCompatActivity {
     private final List<MapItem> mapItemList = new ArrayList<>();    //每一个地图存档
     private MapItemAdapter mapItemAdapter;
     private ActivityResultLauncher<Intent> externalStorageResultLauncher;
     private ActivityResultLauncher<Intent> resultLauncher;
+    //充当信号量，防止多次异步刷新造成列表显示混乱
+    private volatile boolean isInit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -125,7 +120,8 @@ public class MainActivity extends AppCompatActivity {
                     .setNegativeButton("取消", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            finish();
+                            //不要直接结束应用
+                            //finish();
                         }
                     })
                     .setCancelable(false)
@@ -137,8 +133,14 @@ public class MainActivity extends AppCompatActivity {
     /**
      * 初始化数据
      */
-    private void initData() {
+    private synchronized void initData() {
+        //如果正在获取数据，直接返回
+        if(isInit) {
+            return;
+        }
+        isInit = true;
         Toast.makeText(this, "正在扫描游戏存档中", Toast.LENGTH_LONG).show();
+        Log.i("tms", "初始化数据");
         Observable.create(new ObservableOnSubscribe<MapItem>() {
                     @Override
                     public void subscribe(ObservableEmitter<MapItem> emitter) throws Exception {
@@ -159,14 +161,12 @@ public class MainActivity extends AppCompatActivity {
                                     DocumentFile folder = findDocumentFile(file, "files/games/com.mojang/minecraftWorlds");
                                     if (folder != null) {
                                         try {
-                                            PackageInfo packageInfo = getPackageManager().getPackageInfo(file.getName(), 0);
-                                            File so = new File(packageInfo.applicationInfo.nativeLibraryDir, "libminecraftpe.so");
-                                            if (so.exists()) {
+                                            if (Objects.requireNonNull(file.getName()).endsWith("com.mojang.minecraftpe")) {
                                                 forEach(emitter, folder, WorldType.Bedrock);
                                             } else {
                                                 throw new RuntimeException("not minecraft");
                                             }
-                                        } catch (PackageManager.NameNotFoundException | RuntimeException e) {
+                                        } catch (RuntimeException e) {
                                             forEach(emitter, folder, WorldType.Unknown);
                                         }
                                     }
@@ -189,14 +189,12 @@ public class MainActivity extends AppCompatActivity {
                                         File folder = new File(f, "files/games/com.mojang/minecraftWorlds");
                                         if (folder.exists()) {
                                             try {
-                                                PackageInfo packageInfo = getPackageManager().getPackageInfo(file.getName(), 0);
-                                                File so = new File(packageInfo.applicationInfo.nativeLibraryDir, "libminecraftpe.so");
-                                                if (so.exists()) {
+                                                if (f.toString().endsWith("com.mojang.minecraftpe")) {
                                                     forEach(emitter, folder, WorldType.Bedrock);
                                                 } else {
                                                     throw new RuntimeException("not minecraft");
                                                 }
-                                            } catch (PackageManager.NameNotFoundException | RuntimeException e) {
+                                            } catch (RuntimeException e) {
                                                 forEach(emitter, folder, WorldType.Unknown);
                                             }
                                         }
@@ -325,11 +323,13 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onError(Throwable e) {
+                        isInit = false;
                         Toast.makeText(MainActivity.this, "发生错误:" + e.getMessage(), Toast.LENGTH_LONG).show();
                     }
 
                     @Override
                     public void onComplete() {
+                        isInit = false;
                         Toast.makeText(MainActivity.this, "扫描完成", Toast.LENGTH_SHORT).show();
                     }
                 });

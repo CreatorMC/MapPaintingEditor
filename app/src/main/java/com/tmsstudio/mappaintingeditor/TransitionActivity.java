@@ -3,9 +3,7 @@ package com.tmsstudio.mappaintingeditor;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-
 import androidx.appcompat.app.AppCompatActivity;
-
 import com.tmsstudio.mappaintingeditor.Message.Message;
 
 public class TransitionActivity extends AppCompatActivity {

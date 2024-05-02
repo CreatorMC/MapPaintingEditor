@@ -2,7 +2,6 @@ package com.tmsstudio.mappaintingeditor.nbt.tags;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
 import com.tmsstudio.mappaintingeditor.nbt.convert.NBTConstants;
 
 import java.io.Serializable;

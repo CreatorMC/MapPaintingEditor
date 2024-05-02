@@ -1,16 +1,8 @@
 package com.tmsstudio.mappaintingeditor.nbt.convert;
 
-import com.tmsstudio.mappaintingeditor.nbt.tags.*;
+import com.tmsstudio.mappaintingeditor.nbt.tags.CompoundTag;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
 public final class LevelDataConverter {
 

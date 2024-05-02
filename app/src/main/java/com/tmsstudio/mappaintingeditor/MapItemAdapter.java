@@ -6,10 +6,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.tmsstudio.mappaintingeditor.Message.Message;
 
 import java.util.List;
@@ -36,7 +34,7 @@ public class MapItemAdapter extends RecyclerView.Adapter<MapItemAdapter.ViewHold
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        MapItem item = list.get(position);
+        final MapItem item = list.get(position);
         if (item.getIcon() != null) {
             holder.icon.setImageBitmap(item.getIcon());
         }
@@ -57,9 +55,9 @@ public class MapItemAdapter extends RecyclerView.Adapter<MapItemAdapter.ViewHold
     private String worldTypeToName(WorldType type) {
         switch (type) {
             case OutdatedBedrock:
-                return "旧国际版";
+                return "旧国际版路径";
             case Bedrock:
-                return "国际版";
+                return "国际版路径";
             case NetEaseBedrock:
                 return "中国版";
             default:

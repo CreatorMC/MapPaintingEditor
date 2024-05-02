@@ -9,9 +9,7 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
-
 import androidx.activity.result.ActivityResultLauncher;
-
 import com.tmsstudio.mappaintingeditor.Message.Message;
 
 import java.util.ArrayList;

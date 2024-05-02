@@ -12,44 +12,26 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.ImageView;
-import android.widget.Spinner;
-import android.widget.Toast;
-
+import android.widget.*;
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.documentfile.provider.DocumentFile;
-
 import com.litl.leveldb.DB;
 import com.litl.leveldb.Iterator;
 import com.tmsstudio.mappaintingeditor.Message.Message;
 import com.tmsstudio.mappaintingeditor.PicFactory.PicFactory;
 import com.tmsstudio.mappaintingeditor.nbt.Keys;
 import com.tmsstudio.mappaintingeditor.nbt.convert.DataConverter;
-import com.tmsstudio.mappaintingeditor.nbt.tags.ByteArrayTag;
-import com.tmsstudio.mappaintingeditor.nbt.tags.ByteTag;
-import com.tmsstudio.mappaintingeditor.nbt.tags.CompoundTag;
-import com.tmsstudio.mappaintingeditor.nbt.tags.IntTag;
-import com.tmsstudio.mappaintingeditor.nbt.tags.ListTag;
-import com.tmsstudio.mappaintingeditor.nbt.tags.LongTag;
-import com.tmsstudio.mappaintingeditor.nbt.tags.ShortTag;
-import com.tmsstudio.mappaintingeditor.nbt.tags.StringTag;
-import com.tmsstudio.mappaintingeditor.nbt.tags.Tag;
+import com.tmsstudio.mappaintingeditor.nbt.tags.*;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Random;
 
+@SuppressWarnings("rawtypes")
 public class ImportPicActivity extends AppCompatActivity {
     String folder;    //地图根文件夹路径
     String name;
@@ -94,7 +76,7 @@ public class ImportPicActivity extends AppCompatActivity {
             new_list.clear();                                                       //清空所有tag
 
 
-            /*-------------------------------------第一地图----------------------------------------*/
+            /*-------------------------------------生成地图----------------------------------------*/
             ArrayList<Tag> map_tag_compound_list = new ArrayList<>();
             map_tag_compound_list.add(new ByteTag("map_is_init", (byte) 1));
             map_tag_compound_list.add(new IntTag("map_name_index", slot + 1));
@@ -136,35 +118,18 @@ public class ImportPicActivity extends AppCompatActivity {
             byte[] data = DataConverter.write(list);
             testDB.put(Keys.LOCAL_PLAYER.getBytes(), data);
 
-
             //生成地图数据
-            long map_parient_uuid;                                  //保持负数，貌似未锁定的地图的uuid都是负数
-            boolean has_uuid_0 = false;                       //uuid是否重复，重复的话重新生成，不重复退出循环
-            boolean has_uuid_1 = false;                       //uuid是否重复，重复的话重新生成，不重复退出循环
-            boolean has_uuid_2 = false;                       //uuid是否重复，重复的话重新生成，不重复退出循环
-            boolean has_uuid_3 = false;                       //uuid是否重复，重复的话重新生成，不重复退出循环
-            boolean has_uuid_4 = false;                       //uuid是否重复，重复的话重新生成，不重复退出循环
-            do {
-                Random random = new Random();
-                map_parient_uuid = -Math.abs(random.nextLong() % (Long.MAX_VALUE) + 1);     //地图的父uuid
-                has_uuid_0 = isFindEqualKey("map_" + (map_parient_uuid), testDB);
-                has_uuid_1 = isFindEqualKey("map_" + (map_parient_uuid + 1), testDB);
-                has_uuid_2 = isFindEqualKey("map_" + (map_parient_uuid + 2), testDB);
-                has_uuid_3 = isFindEqualKey("map_" + (map_parient_uuid + 3), testDB);
-                has_uuid_4 = isFindEqualKey("map_" + (map_parient_uuid + 4), testDB);
-            } while (has_uuid_0 || has_uuid_1 || has_uuid_2 || has_uuid_3 || has_uuid_4);
-
             ArrayList<Tag> map_data_list = new ArrayList<>();
             ArrayList<Tag> child_list = new ArrayList<>();
             child_list.add(new ByteArrayTag("colors", mc_map));
-            child_list.add(new ListTag("decorations", new ArrayList<Tag>()));
-            child_list.add(new ByteTag("dimension", (byte) 0));
+            child_list.add(new ListTag("decorations", new ArrayList<>()));
+            child_list.add(new ByteTag("dimension", (byte) -1));
             child_list.add(new ByteTag("fullyExplored", (byte) 0));
             child_list.add(new ShortTag("height", (short) 128));
             child_list.add(new LongTag("mapId", map_uuid));
             child_list.add(new ByteTag("mapLocked", (byte) 1));
-            child_list.add(new LongTag("parentMapId", map_parient_uuid + 1));
-            child_list.add(new ByteTag("scale", (byte) 0));
+            child_list.add(new LongTag("parentMapId", -1L));
+            child_list.add(new ByteTag("scale", (byte) 4));
             child_list.add(new ByteTag("unlimitedTracking", (byte) 0));
             child_list.add(new ShortTag("width", (short) 128));
             child_list.add(new IntTag("xCenter", 0));
@@ -174,201 +139,6 @@ public class ImportPicActivity extends AppCompatActivity {
             map_data_list.add(root_comp);
             byte[] data_map = DataConverter.write(map_data_list);
             String map_name = "map_" + map_uuid;
-            Log.i("TMS", map_name);
-            testDB.put(map_name.getBytes(), data_map);
-            /*-------------------------------------------------------------------------------------*/
-
-
-
-
-
-
-
-
-            /*-----------------------------------第二地图------------------------------------------*/
-            has_uuid = false;                       //uuid是否重复，重复的话重新生成，不重复退出循环
-            do {
-                Random random = new Random();
-                map_uuid = Math.abs(random.nextLong() % (Long.MAX_VALUE) + 1);  //避免超范围
-                has_uuid = isFindEqualKey("map_" + map_uuid, testDB);
-            } while (has_uuid);
-
-            map_data_list.clear();
-            child_list.clear();
-            child_list.add(new ByteArrayTag("colors", mc_map));
-            child_list.add(new ListTag("decorations", new ArrayList<Tag>()));
-            child_list.add(new ByteTag("dimension", (byte) 0));
-            child_list.add(new ByteTag("fullyExplored", (byte) 0));
-            child_list.add(new ShortTag("height", (short) 128));
-            child_list.add(new LongTag("mapId", map_uuid));
-            child_list.add(new ByteTag("mapLocked", (byte) 1));
-            child_list.add(new LongTag("parentMapId", map_parient_uuid + 1));
-            child_list.add(new ByteTag("scale", (byte) 0));
-            child_list.add(new ByteTag("unlimitedTracking", (byte) 0));
-            child_list.add(new ShortTag("width", (short) 128));
-            child_list.add(new IntTag("xCenter", 0));
-            child_list.add(new IntTag("zCenter", 0));
-
-            root_comp = new CompoundTag(tag_item.getName(), child_list);
-            map_data_list.add(root_comp);
-            data_map = DataConverter.write(map_data_list);
-            map_name = "map_" + map_uuid;
-            Log.i("TMS", map_name);
-            testDB.put(map_name.getBytes(), data_map);
-            /*-------------------------------------------------------------------------------------*/
-
-
-
-
-
-
-
-
-
-            /*-----------------------------------第三地图------------------------------------------*/
-            map_data_list.clear();
-            child_list.clear();
-            child_list.add(new ByteArrayTag("colors", mc_map));
-            child_list.add(new ListTag("decorations", new ArrayList<Tag>()));
-            child_list.add(new ByteTag("dimension", (byte) 0));
-            child_list.add(new ByteTag("fullyExplored", (byte) 0));
-            child_list.add(new ShortTag("height", (short) 128));
-            child_list.add(new LongTag("mapId", map_parient_uuid));
-            child_list.add(new ByteTag("mapLocked", (byte) 0));
-            child_list.add(new LongTag("parentMapId", map_parient_uuid + 1));
-            child_list.add(new ByteTag("scale", (byte) 0));
-            child_list.add(new ByteTag("unlimitedTracking", (byte) 0));
-            child_list.add(new ShortTag("width", (short) 128));
-            child_list.add(new IntTag("xCenter", 0));
-            child_list.add(new IntTag("zCenter", 0));
-
-            root_comp = new CompoundTag(tag_item.getName(), child_list);
-            map_data_list.add(root_comp);
-            data_map = DataConverter.write(map_data_list);
-            map_name = "map_" + map_parient_uuid;
-            Log.i("TMS", map_name);
-            testDB.put(map_name.getBytes(), data_map);
-            /*-------------------------------------------------------------------------------------*/
-
-
-
-
-
-
-
-            /*-----------------------------------第四地图------------------------------------------*/
-            map_data_list.clear();
-            child_list.clear();
-            child_list.add(new ByteArrayTag("colors", new byte[65536]));
-            child_list.add(new ListTag("decorations", new ArrayList<Tag>()));
-            child_list.add(new ByteTag("dimension", (byte) 0));
-            child_list.add(new ByteTag("fullyExplored", (byte) 0));
-            child_list.add(new ShortTag("height", (short) 128));
-            child_list.add(new LongTag("mapId", map_parient_uuid + 1));
-            child_list.add(new ByteTag("mapLocked", (byte) 0));
-            child_list.add(new LongTag("parentMapId", map_parient_uuid + 2));
-            child_list.add(new ByteTag("scale", (byte) 1));
-            child_list.add(new ByteTag("unlimitedTracking", (byte) 0));
-            child_list.add(new ShortTag("width", (short) 128));
-            child_list.add(new IntTag("xCenter", 0));
-            child_list.add(new IntTag("zCenter", 0));
-
-            root_comp = new CompoundTag(tag_item.getName(), child_list);
-            map_data_list.add(root_comp);
-            data_map = DataConverter.write(map_data_list);
-            map_name = "map_" + (map_parient_uuid + 1);
-            Log.i("TMS", map_name);
-            testDB.put(map_name.getBytes(), data_map);
-            /*-------------------------------------------------------------------------------------*/
-
-
-
-
-
-
-
-
-            /*-----------------------------------第五地图------------------------------------------*/
-            map_data_list.clear();
-            child_list.clear();
-            child_list.add(new ByteArrayTag("colors", new byte[65536]));
-            child_list.add(new ListTag("decorations", new ArrayList<Tag>()));
-            child_list.add(new ByteTag("dimension", (byte) 0));
-            child_list.add(new ByteTag("fullyExplored", (byte) 0));
-            child_list.add(new ShortTag("height", (short) 128));
-            child_list.add(new LongTag("mapId", map_parient_uuid + 2));
-            child_list.add(new ByteTag("mapLocked", (byte) 0));
-            child_list.add(new LongTag("parentMapId", map_parient_uuid + 3));
-            child_list.add(new ByteTag("scale", (byte) 2));
-            child_list.add(new ByteTag("unlimitedTracking", (byte) 0));
-            child_list.add(new ShortTag("width", (short) 128));
-            child_list.add(new IntTag("xCenter", 0));
-            child_list.add(new IntTag("zCenter", 0));
-
-            root_comp = new CompoundTag(tag_item.getName(), child_list);
-            map_data_list.add(root_comp);
-            data_map = DataConverter.write(map_data_list);
-            map_name = "map_" + (map_parient_uuid + 2);
-            Log.i("TMS", map_name);
-            testDB.put(map_name.getBytes(), data_map);
-            /*-------------------------------------------------------------------------------------*/
-
-
-
-
-
-
-            /*-----------------------------------第六地图------------------------------------------*/
-            map_data_list.clear();
-            child_list.clear();
-            child_list.add(new ByteArrayTag("colors", new byte[65536]));
-            child_list.add(new ListTag("decorations", new ArrayList<Tag>()));
-            child_list.add(new ByteTag("dimension", (byte) 0));
-            child_list.add(new ByteTag("fullyExplored", (byte) 0));
-            child_list.add(new ShortTag("height", (short) 128));
-            child_list.add(new LongTag("mapId", map_parient_uuid + 3));
-            child_list.add(new ByteTag("mapLocked", (byte) 0));
-            child_list.add(new LongTag("parentMapId", map_parient_uuid + 4));
-            child_list.add(new ByteTag("scale", (byte) 3));
-            child_list.add(new ByteTag("unlimitedTracking", (byte) 0));
-            child_list.add(new ShortTag("width", (short) 128));
-            child_list.add(new IntTag("xCenter", 0));
-            child_list.add(new IntTag("zCenter", 0));
-
-            root_comp = new CompoundTag(tag_item.getName(), child_list);
-            map_data_list.add(root_comp);
-            data_map = DataConverter.write(map_data_list);
-            map_name = "map_" + (map_parient_uuid + 3);
-            Log.i("TMS", map_name);
-            testDB.put(map_name.getBytes(), data_map);
-            /*-------------------------------------------------------------------------------------*/
-
-
-
-
-
-
-            /*-----------------------------------第七地图------------------------------------------*/
-            map_data_list.clear();
-            child_list.clear();
-            child_list.add(new ByteArrayTag("colors", new byte[65536]));
-            child_list.add(new ListTag("decorations", new ArrayList<Tag>()));
-            child_list.add(new ByteTag("dimension", (byte) 0));
-            child_list.add(new ByteTag("fullyExplored", (byte) 0));
-            child_list.add(new ShortTag("height", (short) 128));
-            child_list.add(new LongTag("mapId", map_parient_uuid + 4));
-            child_list.add(new ByteTag("mapLocked", (byte) 0));
-            child_list.add(new LongTag("parentMapId", -1));
-            child_list.add(new ByteTag("scale", (byte) 4));
-            child_list.add(new ByteTag("unlimitedTracking", (byte) 0));
-            child_list.add(new ShortTag("width", (short) 128));
-            child_list.add(new IntTag("xCenter", 0));
-            child_list.add(new IntTag("zCenter", 0));
-
-            root_comp = new CompoundTag(tag_item.getName(), child_list);
-            map_data_list.add(root_comp);
-            data_map = DataConverter.write(map_data_list);
-            map_name = "map_" + (map_parient_uuid + 4);
             Log.i("TMS", map_name);
             testDB.put(map_name.getBytes(), data_map);
             /*-------------------------------------------------------------------------------------*/
@@ -386,18 +156,16 @@ public class ImportPicActivity extends AppCompatActivity {
      * @return false:没有重复
      */
     public static boolean isFindEqualKey(String key_name, DB testDB) {
-//        Log.i("TMS", "isFindEqualKey: " + testDB.isClosed());
         if (testDB == null || testDB.isClosed()) {
             return false;
         }
-        Iterator iterator = testDB.iterator();
-        for (iterator.seekToFirst(); iterator.isValid(); iterator.next()) {
-//            Log.i("TMS", new String(iterator.getKey()));
-            if (key_name.equals(new String(iterator.getKey()))) {
-                return true;
+        try(Iterator iterator = testDB.iterator()) {
+            for (iterator.seekToFirst(); iterator.isValid(); iterator.next()) {
+                if (key_name.equals(new String(iterator.getKey()))) {
+                    return true;
+                }
             }
         }
-        iterator.close();
         return false;
     }
 
